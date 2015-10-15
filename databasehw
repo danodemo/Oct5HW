@@ -1,0 +1,71 @@
+--Dan Nicodemo HW Oct 5 2015
+NORMAL MODE
+
+-- How many users are there?
+  SELECT COUNT(*) FROM users;
+  "There are 50 total users."
+
+-- What are the 5 most expensive items?
+  SELECT title, price FROM items  ORDER BY price DESC LIMIT 5;
+  "The 5 most expensive items are Small Cotton Gloves@9984, Small Wooden Computer @9859, Awesome Granite Pants@9790,
+  Sleek Wooden Hat @9390, and Ergonomic Steel Car@9341.  Also that was the greatest list of things I've ever
+  read in my entire life."
+
+-- What's the cheapest book? (Does that change for "category is exactly 'book'" versus "category contains 'book'"?)
+*C*--We can make sure we are including any categories containing 'book' by using the LIKE operator!
+  SELECT title, price FROM items WHERE category LIKE "%book%" ORDER BY price desc;
+  "The cheapest book is 'Ergonomic Granite Chair@1496', which doesn't make any damn sense."
+
+-- Who lives at "6439 Zetta Hills, Willmouth, WY"? Do they have another address?
+  SELECT user_id FROM addresses WHERE street IN ('6439 Zetta Hills'); --> This returns user_id #40
+  SELECT * FROM users WHERE id=40;
+  "We learn that some chick named Corinne Little lives at 6439 Zetta Hills....HOWEVER...."
+  SELECT * FROM addresses WHERE user_id=40;
+  "We see this sketchball has 2 ADDRESSES!!!  She also lives on 54369 Wolff Forges in California.
+   An address in Wyoming...and in California?  Sounds like some shady shit to me."
+
+-- Correct Virginie Mitchell's address to "New York, NY, 10108".
+  "First let's find Virginie Mitchell's user_id"
+  SELECT id FROM users WHERE first_name IN ("Virginie"); --> id = 39
+  "Now we can update using her user_id column info!"
+  UPDATE addresses SET city="New York", state="NY", zip=10108 WHERE user_id=39;
+  "Since she has 2 addresses, they are now BOTH updated because we used the user_id column"
+      --> This means it updated these values EVERYWHERE user_id was equal to 39
+
+-- How many total items did we sell?
+  SELECT SUM(quantity) FROM orders;
+  "We inexplicably sold 2125 items.  Who buys this stuff?!?"
+
+--Simulate buying an item by inserting a User for yourself and an Order for that User.
+  INSERT INTO users(first_name, last_name, email) VALUES ('Dan', 'Nicodemo', 'danodemo479@gmail.com');
+  "This creates my user in id 51, because I did not specify an id number, and it's set to autoincrement"
+  INSERT INTO orders(user_id, item_id, quantity, created_at) VALUES (51,22,200,CURRENT_TIMESTAMP);
+  "I have successfully ordered 200 Intelligent Wooden Cars for my new car dealership."
+
+
+HARD MODE
+--How much would it cost to buy one of each tool?
+  SELECT SUM(price) FROM items WHERE category LIKE ("%Tools%");
+  "It would cost $46,477 to buy one of each tool"
+  "It would cost $467,488 to buy one of each ITEM"
+
+--What item was ordered most often? Grossed the most money?
+  SELECT orders.item_id, SUM(orders.quantity) AS total FROM orders INNER JOIN items ON items.id=orders.item_id GROUP BY orders.item_id ORDER BY total DESC;
+  "This shows us that item 65 (which when checked reveals Incredible Granite Car) was ordered the most at 72 times"
+  SELECT items.id, orders.quantity, SUM(orders.quantity)*items.price AS total_gross FROM orders INNER JOIN items ON items.id = orders.item_id GROUP BY orders.item_id ORDER BY total_gross DESC;
+  "Have no idea if this is right because it's freaking gigantic, but I'm pretty sure this returned
+  item number 65 - our old Incredible Granite Car - as the highest grossing at $525,240 gross profit."
+
+--What user spent the most?
+  SELECT orders.user_id, SUM(orders.quantity*items.price) AS moneyspent FROM orders INNER JOIN items ON items.id=orders.item_id GROUP BY orders.user_id ORDER BY moneyspent DESC LIMIT 1;
+  "They all spent way too much money on this silly nonsense, but we now know that User 19 spent the most."
+  SELECT * FROM users WHERE id=19;
+  "Hassan Runte has spent way too much money on this weird stuff..."
+
+--What were the top 3 highest grossing categories?
+  SELECT SUM(orders.quantity * items.price) AS total, items.category FROM orders INNER JOIN items on items.id = orders.item_id GROUP BY items.category ORDER BY total DESC LIMIT 3;
+ "Who knows, this whole store is probably a scam.  But Sports@996610, Music, Sports & Clothing@525240 and Beauty, Toys & Sports@449496
+  are the highest grossing categories."
+
+--How much was spent on books?
+  "Clearly not enough, if you judge by all the idiots walking around town these days..."
